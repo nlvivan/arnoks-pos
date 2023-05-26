@@ -177,7 +177,7 @@ const columns = [
         key: 'name',
     },
     {
-        title: 'Quantity',
+        title: 'Stock',
         dataIndex: 'quantity',
         key: 'name',
     },
@@ -281,9 +281,9 @@ watchDebounced(
                                         ">
                                 </a-select>
                             </a-form-item>
-                            <a-form-item label="Quantity" :validate-status="form.errors.quantity ? 'error' : null"
+                            <a-form-item label="Stock" :validate-status="form.errors.quantity ? 'error' : null"
                                 :help="form.errors.quantity">
-                                <a-input v-model:value="form.quantity" placeholder="Quantity" allow-clear />
+                                <a-input v-model:value="form.quantity" placeholder="Stock" allow-clear />
                             </a-form-item>
                             <a-form-item label="Price" :validate-status="form.errors.price ? 'error' : null"
                                 :help="form.errors.price">

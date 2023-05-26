@@ -34,6 +34,11 @@ const links = computed(() => {
             icon: DashboardOutlined
         },
         {
+            label: 'Stocks',
+            path: route('productStock.index'),
+            icon: DashboardOutlined
+        },
+        {
             label: 'Categories',
             path: route('categories.index'),
             icon: DashboardOutlined

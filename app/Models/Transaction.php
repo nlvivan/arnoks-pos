@@ -4,16 +4,16 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
-class PointOfSale extends Model
+class Transaction extends Model
 {
     use HasFactory;
 
     protected $guarded = [];
 
-    public function transaction(): BelongsTo
+    public function pointOfSales(): HasMany
     {
-        return $this->belongsTo(Transaction::class);
+        return $this->hasMany(PointOfSale::class);
     }
 }

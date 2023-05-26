@@ -2,8 +2,8 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\PointOfSale;
 use App\Models\Product;
+use App\Models\Transaction;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -24,6 +24,14 @@ class PosController extends Controller
     {
         $data = [];
         $transactionNumber = uniqid('ARNOKS-', true);
+
+        $transaction = Transaction::create([
+            'transaction_number' => $transactionNumber,
+            'cash' => $request->cash,
+            'change' => $request->cash - $request->totalAmount,
+            'total_amount' => $request->totalAmount,
+        ]);
+
         foreach ($request->items as $item) {
 
             $product = Product::find($item['product_id']);
@@ -34,7 +42,6 @@ class PosController extends Controller
                 'product_id' => $item['product_id'],
                 'quantity' => $item['quantity'],
                 'total' => $item['quantity'] * $product->price,
-                'transaction_number' => $transactionNumber,
                 'created_at' => Carbon::now(),
                 'updated_at' => Carbon::now(),
             ];
@@ -42,8 +49,14 @@ class PosController extends Controller
             array_push($data, $obj);
         }
 
-        PointOfSale::insert($data);
+        $transaction->pointOfSales()->insert($data);
 
-        return redirect()->back();
+        $products = Product::with('category')->search($request->search)->get();
+
+        return Inertia::render('POS/Index', [
+            'products' => $products,
+            'filters' => $request->only('search'),
+            'change' => $transaction->change,
+        ]);
     }
 }
