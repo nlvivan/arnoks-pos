@@ -4,6 +4,7 @@ use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\PosController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\ReceiptController;
 use App\Http\Controllers\StocksController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
@@ -44,6 +45,7 @@ Route::middleware('auth')->group(function () {
     // stock
     Route::get('/product-stocks', [StocksController::class, 'index'])->name('productStock.index');
     Route::post('/update-product-stocks/{product}', [StocksController::class, 'updateStock'])->name('productStock.update');
+    Route::get('/print-receipt', [ReceiptController::class, 'print'])->name('print.receipt');
 });
 
 require __DIR__.'/auth.php';

@@ -25,7 +25,7 @@ const form = useForm({
 })
 const showAlertNotification = ref(false)
 onMounted(() => {
-    if (props.productStocksDetails) {
+    if (props.productStocksDetails.length > 0) {
         Modal.warning({
             title: () => 'There have products that has low stock please check the Product',
             content: () => {

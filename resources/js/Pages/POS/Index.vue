@@ -2,12 +2,14 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import { useForm, router } from '@inertiajs/vue3';
 import { ref } from 'vue';
+import { notification } from 'ant-design-vue'
 const props = defineProps({
     products: Array,
     filters: '',
-    change: ''
+    change: '',
+    receiptPath: ''
 })
-import { notification } from 'ant-design-vue'
+
 
 const visible = ref(false)
 const selectedProductId = ref(null)
@@ -17,6 +19,11 @@ const quantityError = ref(false)
 const cashError = ref(false)
 const Ordervisible = ref(false)
 const totalAmount = ref(0)
+const isShowReceiptModal = ref(false)
+
+const showReceiptModal = () => {
+    window.open(`/storage/${props.receiptPath}`)
+}
 
 const openPosModal = (product) => {
     selectedProduct.value = product
@@ -44,6 +51,7 @@ const addOrder = () => {
     let obj = {
         product_id: selectedProductId.value,
         product_name: selectedProduct.value.name,
+        price: selectedProduct.value.price,
         quantity: selectedProductQuantity.value,
         total: total
     }
@@ -147,6 +155,9 @@ const viewOrderModal = () => {
                                     Product name
                                 </th>
                                 <th scope="col" class="px-6 py-3">
+                                    Price
+                                </th>
+                                <th scope="col" class="px-6 py-3">
                                     Quantity
                                 </th>
                                 <th scope="col" class="px-6 py-3">
@@ -159,6 +170,9 @@ const viewOrderModal = () => {
                                 <th scope="row" class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap">
                                     {{ orderItem.product_name }}
                                 </th>
+                                <td class="px-6 py-4">
+                                    {{ orderItem?.price }}
+                                </td>
                                 <td class="px-6 py-4">
                                     {{ orderItem?.quantity }}
                                 </td>
@@ -184,8 +198,10 @@ const viewOrderModal = () => {
                         <a-form-item :wrapper-col="{ offset: 4, span: 20 }" class="mb-0">
                             <div class="flex justify-end gap-2">
                                 <a-button key="back" @click="handleCancel">Cancel</a-button>
-                                <a-button v-if="!isEdit" type="primary" htmlType="submit" :loading="form.processing"
+                                <a-button v-if="!receiptPath" type="primary" htmlType="submit" :loading="form.processing"
                                     @click="submitOrder">Submit Order</a-button>
+                                    <a-button v-if="receiptPath" type="primary" htmlType="submit" :loading="form.processing"
+                                    @click="showReceiptModal">Print Receipt</a-button>
                                 <a-button v-if="change" type="primary" htmlType="submit" :loading="form.processing"
                                     @click="nextCustomer">Next</a-button>
                             </div>

@@ -19,6 +19,7 @@
     "dependencies": {
         "@vueuse/core": "^10.0.2",
         "ant-design-vue": "^3.2.17",
-        "unplugin-vue-components": "^0.24.1"
+        "unplugin-vue-components": "^0.24.1",
+        "vue-pdf": "^4.3.0"
     }
 }

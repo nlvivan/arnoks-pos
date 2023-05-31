@@ -4,9 +4,12 @@ namespace App\Http\Controllers;
 
 use App\Models\Product;
 use App\Models\Transaction;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
+use Illuminate\Support\Str;
 
 class PosController extends Controller
 {
@@ -42,21 +45,33 @@ class PosController extends Controller
                 'product_id' => $item['product_id'],
                 'quantity' => $item['quantity'],
                 'total' => $item['quantity'] * $product->price,
-                'created_at' => Carbon::now(),
-                'updated_at' => Carbon::now(),
             ];
 
-            array_push($data, $obj);
+            $transaction->pointOfSales()->create($obj);
         }
 
-        $transaction->pointOfSales()->insert($data);
+        
 
         $products = Product::with('category')->search($request->search)->get();
 
+        $transactionData = Transaction::with(['pointOfSales', 'pointOfSales.product'])->where('id', $transaction->id)->first();
+        $data = [
+            'data' => $transactionData,
+            'point_of_sales' => $transactionData->pointOfSales
+        ];
+        $pdf = Pdf::loadView('receipt', $data)->setPaper([0, 0, 500, 800], 'landscape');
+
+        $filename = Str::random().'receipt.pdf';
+        
+        Storage::disk('public')->put($filename, $pdf->output());
+        
+        $path = Storage::disk('public')->path($filename);
+        // $pdf->save($receiptPath = storage_path("app/".Str::random().'.pdf'));
         return Inertia::render('POS/Index', [
             'products' => $products,
             'filters' => $request->only('search'),
             'change' => $transaction->change,
+            'receiptPath' => $filename
         ]);
     }
 }
