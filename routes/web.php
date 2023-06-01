@@ -1,6 +1,8 @@
 <?php
 
 use App\Http\Controllers\CategoryController;
+use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\GenerateReportController;
 use App\Http\Controllers\PosController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\ProfileController;
@@ -30,11 +32,8 @@ Route::redirect('/', '/login');
 //     ]);
 // });
 
-Route::get('/dashboard', function () {
-    return Inertia::render('Dashboard');
-})->middleware(['auth', 'verified'])->name('dashboard');
-
 Route::middleware('auth')->group(function () {
+    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
     Route::resource('/categories', CategoryController::class);
     Route::resource('/products', ProductController::class);
     Route::resource('/point-of-sale', PosController::class);
@@ -46,6 +45,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/product-stocks', [StocksController::class, 'index'])->name('productStock.index');
     Route::post('/update-product-stocks/{product}', [StocksController::class, 'updateStock'])->name('productStock.update');
     Route::get('/print-receipt', [ReceiptController::class, 'print'])->name('print.receipt');
+    Route::get('/generate-report', [GenerateReportController::class, 'generate'])->name('generate-report');
 });
 
 require __DIR__.'/auth.php';
