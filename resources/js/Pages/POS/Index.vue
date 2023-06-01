@@ -47,7 +47,15 @@ const addOrder = () => {
         quantityError.value = true
         return
     }
-    const total = selectedProduct.value.price * selectedProductQuantity.value
+
+    const existingProduct = form.items.some(item => item.product_id ===  selectedProduct.value.id)
+    console.log(selectedProduct.value.id)
+    if(existingProduct) {
+        const foundItem = form.items.find(item => item.product_id === selectedProduct.value.id);
+        foundItem.quantity = Number(foundItem.quantity) + Number(selectedProductQuantity.value)
+        foundItem.total = foundItem.quantity * selectedProduct.value.price
+    } else {
+        const total = selectedProduct.value.price * selectedProductQuantity.value
     let obj = {
         product_id: selectedProductId.value,
         product_name: selectedProduct.value.name,
@@ -56,8 +64,8 @@ const addOrder = () => {
         total: total
     }
     form.items.push(obj)
+    }
     visible.value = false
-
     selectedProductId.value = ''
     selectedProductQuantity.value = ''
     selectedProduct.value = ''

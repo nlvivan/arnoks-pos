@@ -18,10 +18,10 @@ const props = defineProps({
     transactions: '',
     searchProps: ''
 })
-
+    
 const current = ref(props.transactions.current_page)
 const pageSize = ref(props.transactions.per_page)
-const search = ref('')
+const search = ref( props.searchProps ? [dayjs(props.searchProps.from_date), dayjs(props.searchProps.to_date)] : [])
 
 const pagination = computed(() => ({
   total: props.transactions.total,
