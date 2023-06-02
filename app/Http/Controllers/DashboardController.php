@@ -20,7 +20,7 @@ class DashboardController extends Controller
                         ->when($request->from_date && $request->to_date, function ($query) use ($request) {
                             $query->whereBetween('created_at', [Carbon::parse($request->from_date)->startOfDay(), Carbon::parse($request->to_date)->startOfDay()]);
                         }, function ($query) {
-                            $query->whereDate('created_at', Carbon::today());
+                            $query->whereDate('created_at', now());
                         })->paginate();
 
         return Inertia::render('Dashboard', [
