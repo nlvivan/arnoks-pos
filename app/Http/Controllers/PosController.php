@@ -5,17 +5,16 @@ namespace App\Http\Controllers;
 use App\Models\Product;
 use App\Models\Transaction;
 use Barryvdh\DomPDF\Facade\Pdf;
-use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
-use Inertia\Inertia;
 use Illuminate\Support\Str;
+use Inertia\Inertia;
 
 class PosController extends Controller
 {
     public function index(Request $request)
     {
-        $products = Product::with('category')->search($request->search)->get();
+        $products = Product::with('category', 'location')->search($request->search)->paginate();
 
         return Inertia::render('POS/Index', [
             'products' => $products,
@@ -26,7 +25,7 @@ class PosController extends Controller
     public function store(Request $request)
     {
         $data = [];
-        $transactionNumber = uniqid('ARNOKS-', true);
+        $transactionNumber = uniqid('MS-', true);
 
         $transaction = Transaction::create([
             'transaction_number' => $transactionNumber,
@@ -50,28 +49,26 @@ class PosController extends Controller
             $transaction->pointOfSales()->create($obj);
         }
 
-        
-
         $products = Product::with('category')->search($request->search)->get();
 
         $transactionData = Transaction::with(['pointOfSales', 'pointOfSales.product'])->where('id', $transaction->id)->first();
         $data = [
             'data' => $transactionData,
-            'point_of_sales' => $transactionData->pointOfSales
+            'point_of_sales' => $transactionData->pointOfSales,
         ];
         $pdf = Pdf::loadView('receipt', $data)->setPaper([0, 0, 500, 800], 'landscape');
 
         $filename = Str::random().'receipt.pdf';
-        
+
         Storage::disk('public')->put($filename, $pdf->output());
-        
+
         $path = Storage::disk('public')->path($filename);
         // $pdf->save($receiptPath = storage_path("app/".Str::random().'.pdf'));
         return Inertia::render('POS/Index', [
             'products' => $products,
             'filters' => $request->only('search'),
             'change' => $transaction->change,
-            'receiptPath' => $filename
+            'receiptPath' => $filename,
         ]);
     }
 }

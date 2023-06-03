@@ -2,8 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Exports\ProductExport;
 use App\Http\Requests\ProductStoreOrUpdateRequest;
 use App\Models\Category;
+use App\Models\Location;
 use App\Models\Product;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -17,11 +19,13 @@ class ProductController extends Controller
     public function index(Request $request)
     {
         $categories = Category::all();
-        $products = Product::with('category')->search($request->search)->paginate();
+        $locations = Location::all();
+        $products = Product::with('category', 'location')->search($request->search)->paginate();
 
         return Inertia::render('Product/Index', [
             'categories' => $categories,
             'products' => $products,
+            'locations' => $locations,
             'filters' => $request->only('search'),
         ]);
     }
@@ -69,5 +73,10 @@ class ProductController extends Controller
         $product->delete();
 
         return redirect()->back();
+    }
+
+    public function generateStockReport()
+    {
+        return (new ProductExport)->download('product-stock.xlsx');
     }
 }

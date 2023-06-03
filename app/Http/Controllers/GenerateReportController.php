@@ -12,6 +12,6 @@ class GenerateReportController extends Controller
     {
        $currentDate = Carbon::now();
 
-        return (new ReportExport($request->from_date, $request->to_date))->download($currentDate->format('Y-m-d').'-transactionss.xlsx');
+        return (new ReportExport($request->from_date, $request->to_date))->download($currentDate->format('Y-m-d').'-transactions.xlsx');
     }
 }

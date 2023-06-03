@@ -3,6 +3,7 @@
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\GenerateReportController;
+use App\Http\Controllers\LocationController;
 use App\Http\Controllers\PosController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\ProfileController;
@@ -36,6 +37,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
     Route::resource('/categories', CategoryController::class);
     Route::resource('/products', ProductController::class);
+    Route::resource('/locations', LocationController::class);
     Route::resource('/point-of-sale', PosController::class);
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
@@ -46,6 +48,7 @@ Route::middleware('auth')->group(function () {
     Route::post('/update-product-stocks/{product}', [StocksController::class, 'updateStock'])->name('productStock.update');
     Route::get('/print-receipt', [ReceiptController::class, 'print'])->name('print.receipt');
     Route::get('/generate-report', [GenerateReportController::class, 'generate'])->name('generate-report');
+    Route::get('/generate-stock-report', [ProductController::class, 'generateStockReport'])->name('generate-stock-report');
 });
 
 require __DIR__.'/auth.php';

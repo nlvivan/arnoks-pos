@@ -42,4 +42,14 @@ class User extends Authenticatable
     protected $casts = [
         'email_verified_at' => 'datetime',
     ];
+
+    public function handleRedirectPath(): string
+    {
+        if ($this->hasRole('admin')) {
+            return route('dashboard');
+
+        } else {
+            return route('point-of-sale.index');
+        }
+    }
 }
