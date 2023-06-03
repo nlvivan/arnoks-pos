@@ -6,8 +6,9 @@ use App\Models\Transaction;
 use Carbon\Carbon;
 use Maatwebsite\Excel\Concerns\Exportable;
 use Maatwebsite\Excel\Concerns\FromCollection;
+use Maatwebsite\Excel\Concerns\WithHeadings;
 
-class ReportExport implements FromCollection
+class ReportExport implements FromCollection, WithHeadings
 {
     /**
      * @return \Illuminate\Support\Collection

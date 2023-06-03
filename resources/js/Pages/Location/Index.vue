@@ -1,8 +1,8 @@
 <script setup>
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout.vue";
 import { Head, useForm, router } from "@inertiajs/vue3";
-import { ref, onMounted, computed } from "vue";
-import { notification, Modal } from "ant-design-vue";
+import { ref, computed } from "vue";
+import { notification } from "ant-design-vue";
 import { watchDebounced } from "@vueuse/core";
 import {
     EditOutlined,
@@ -10,19 +10,21 @@ import {
     FilterOutlined,
 } from "@ant-design/icons-vue";
 
-const fileList = ref([]);
 const props = defineProps({
-    products: Object,
-    categories: "",
+    locations: Object,
     filters: "",
-    productStocksDetails: Array,
 });
 
-const current = ref(props.products.current_page);
-const pageSize = ref(props.products.per_page);
+const visible = ref(false);
+const isEdit = ref(false);
+const loading = ref(false);
+const search = ref(props.filters.search);
+
+const current = ref(props.locations.current_page);
+const pageSize = ref(props.locations.per_page);
 
 const pagination = computed(() => ({
-    total: props.products.total,
+    total: props.locations.total,
     current: current.value,
     pageSize: pageSize.value,
     showTotal: (total, range) => `${range[0]}-${range[1]} of ${total} items`,
@@ -34,7 +36,7 @@ const handleTableChange = (event) => {
     pageSize.value = event.pageSize;
 
     router.get(
-        route("stocks.index"),
+        route("locations.index"),
         {
             search: search.value,
             page: event.current,
@@ -46,44 +48,17 @@ const handleTableChange = (event) => {
     );
 };
 
-const form = useForm({
-    quantity: null,
-    critical_stock: null,
-    stock_added: null,
-});
-const showAlertNotification = ref(false);
-onMounted(() => {
-    if (props.productStocksDetails.length > 0) {
-        Modal.warning({
-            title: () =>
-                "There have products that has low stock please check the Product",
-            content: () => {
-                return props.productStocksDetails.map((prod) => {
-                    return prod.name + ",";
-                });
-            },
-        });
-    }
-});
-
-const visible = ref(false);
-const isEdit = ref(false);
-const loading = ref(false);
-const search = ref(props.filters.search);
-
 const openModal = () => {
     isEdit.value = false;
     visible.value = true;
 };
 
 const selectedId = ref(null);
-const EditProduct = (data) => {
+const editCategory = (data) => {
     selectedId.value = data.id;
     isEdit.value = true;
     visible.value = true;
-
-    form.quantity = data.quantity;
-    form.critical_stock = data.critical_stock;
+    form.name = data.name;
 };
 
 const handleCancel = () => {
@@ -91,38 +66,18 @@ const handleCancel = () => {
     visible.value = false;
 };
 
-const imageUrl = ref("");
-const handleChange = (info) => {
-    getBase64(info.file.originFileObj, (base64Url) => {
-        form.image = info.file.originFileObj;
-        form.hasImage = true;
-        imageUrl.value = base64Url;
-        loading.value = false;
-    });
-};
-
-function getBase64(img, callback) {
-    const reader = new FileReader();
-    reader.addEventListener("load", () => callback(reader.result));
-    reader.readAsDataURL(img);
-}
-
-function removeLogo() {
-    imageUrl.value = "";
-    form.logo = "";
-    form.hasLogo = false;
-    fileList.value = [];
-}
+const form = useForm({
+    name: "",
+});
 
 const submitForm = () => {
-    form.post(route("products.store"), {
+    form.post(route("locations.store"), {
         preserveScroll: false,
         onSuccess: () => {
             visible.value = false;
-            imageUrl.value = "";
             form.reset();
             notification.success({
-                message: "Product Created Successfully",
+                message: "Location Created Successfully",
                 placement: "bottomRight",
                 duration: 1.5,
             });
@@ -131,32 +86,29 @@ const submitForm = () => {
 };
 
 const updateForm = () => {
-    form.post(route("productStock.update", selectedId.value), {
-        preserveScroll: true,
+    form.put(route("locations.update", selectedId.value), {
+        preserveScroll: false,
         onSuccess: () => {
             visible.value = false;
             form.reset();
             notification.success({
-                message: "Product Stock Updated Successfully",
+                message: "Location Updated Successfully",
                 placement: "bottomRight",
-                duration: 1,
+                duration: 1.5,
             });
-        },
-        onError: (error) => {
-            // formError.value = error
         },
     });
 };
 
-const deleteProduct = (id) => {
+const deleteCategory = (id) => {
     selectedId.value = id;
     loading.value = true;
-    form.delete(route("products.destroy", id), {
+    form.delete(route("locations.destroy", id), {
         preserveScroll: true,
         onSuccess: () => {
             loading.value = false;
             notification.success({
-                message: "Product Deleted Successfully",
+                message: "Location Deleted Successfully",
                 placement: "bottomRight",
                 duration: 1.5,
             });
@@ -176,16 +128,6 @@ const columns = [
         key: "name",
     },
     {
-        title: "Stock",
-        dataIndex: "quantity",
-        key: "name",
-    },
-    {
-        title: "Critical Stock",
-        dataIndex: "critical_stock",
-        key: "critical_stock",
-    },
-    {
         title: "Action",
         dataIndex: "action",
         key: "action",
@@ -193,15 +135,11 @@ const columns = [
     },
 ];
 
-const generateReport = () => {
-    window.open(route("generate-stock-report"));
-};
-
 watchDebounced(
     search,
     () => {
         router.get(
-            route("productStock.index"),
+            route("locations.index"),
             { search: search.value },
             {
                 preserveState: true,
@@ -214,19 +152,16 @@ watchDebounced(
 </script>
 
 <template>
-    <Head title="Products" />
+    <Head title="Locations" />
 
     <AuthenticatedLayout>
         <div class="">
             <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
                 <div class="bg-white shadow-sm sm:rounded-lg p-4">
-                    <div class="text-gray-900 font-bold text-2xl mb-4">
-                        Stocks
-                    </div>
                     <div class="flex justify-between">
-                        <a-button type="primary" @click="generateReport"
-                            >Generate Report</a-button
-                        >
+                        <div class="text-gray-900 font-bold text-2xl">
+                            Locations
+                        </div>
                         <div>
                             <a-input-search
                                 v-model:value="search"
@@ -234,36 +169,51 @@ watchDebounced(
                                 placeholder="Search"
                                 style="width: 200px"
                             />
+                            <a-button type="primary" class="" @click="openModal"
+                                >Add Location</a-button
+                            >
                         </div>
                     </div>
 
                     <a-table
-                        :dataSource="products.data"
+                        :dataSource="locations.data"
                         :columns="columns"
-                        class="mt-6"
                         @change="handleTableChange"
                         :pagination="{ ...pagination }"
                     >
                         <template #bodyCell="{ column, record }">
-                            <template v-if="column.dataIndex === 'quantity'">
-                                <span
-                                    class="font-bold"
-                                    :class="
-                                        record.quantity < record.critical_stock
-                                            ? 'text-red-800'
-                                            : 'text-green-800'
-                                    "
-                                >
-                                    {{ record.quantity }}</span
-                                >
-                            </template>
                             <template v-if="column.dataIndex === 'action'">
                                 <div class="flex gap-4">
                                     <a-tooltip title="Edit">
-                                        <a-button @click="EditProduct(record)">
-                                            Edit Stocks
+                                        <a-button
+                                            @click="editCategory(record)"
+                                            shape="circle"
+                                        >
+                                            <template #icon>
+                                                <EditOutlined />
+                                            </template>
                                         </a-button>
                                     </a-tooltip>
+                                    <a-popconfirm
+                                        title="Are you sure to delete this location?"
+                                        ok-text="Yes"
+                                        cancel-text="No"
+                                        @confirm="deleteCategory(record.id)"
+                                    >
+                                        <a-tooltip title="Delete">
+                                            <a-button
+                                                shape="circle"
+                                                :loading="
+                                                    loading &&
+                                                    selectedId === record.id
+                                                "
+                                            >
+                                                <template #icon>
+                                                    <DeleteOutlined />
+                                                </template>
+                                            </a-button>
+                                        </a-tooltip>
+                                    </a-popconfirm>
                                 </div>
                             </template>
                         </template>
@@ -273,57 +223,23 @@ watchDebounced(
             <a-modal
                 :maskClosable="true"
                 v-model:visible="visible"
-                title="Update Stock / Critical Stock"
+                title="Create Location"
                 :footer="false"
                 size="md"
             >
                 <div class="flex flex-col gap-2">
-                    <a-form
-                        :label-col="{ span: 6 }"
-                        :wrapper-col="{ span: 18 }"
-                        @submit.prevent="isEdit ? updateForm : submitForm"
-                    >
+                    <a-form @submit.prevent="isEdit ? updateForm : submitForm">
                         <div>
                             <a-form-item
-                                label="Current Stock"
+                                label="Name"
                                 :validate-status="
-                                    form.errors.quantity ? 'error' : null
+                                    form.errors.name ? 'error' : null
                                 "
-                                :help="form.errors.quantity"
+                                :help="form.errors.name"
                             >
                                 <a-input
-                                    disabled
-                                    type="number"
-                                    v-model:value="form.quantity"
-                                    placeholder="Stock"
-                                    allow-clear
-                                />
-                            </a-form-item>
-                            <a-form-item
-                                label="Number of Stock"
-                                :validate-status="
-                                    form.errors.stock_added ? 'error' : null
-                                "
-                                :help="form.errors.stock_added"
-                            >
-                                <a-input
-                                    type="number"
-                                    v-model:value="form.stock_added"
-                                    placeholder="Stock"
-                                    allow-clear
-                                />
-                            </a-form-item>
-                            <a-form-item
-                                label="Critical Stock"
-                                :validate-status="
-                                    form.errors.critical_stock ? 'error' : null
-                                "
-                                :help="form.errors.critical_stock"
-                            >
-                                <a-input
-                                    type="number"
-                                    v-model:value="form.critical_stock"
-                                    placeholder="Stock"
+                                    v-model:value="form.name"
+                                    placeholder="Location name"
                                     allow-clear
                                 />
                             </a-form-item>
@@ -344,13 +260,13 @@ watchDebounced(
                                             htmlType="submit"
                                             :loading="form.processing"
                                             @click="submitForm"
-                                            >Save</a-button
+                                            >Submit</a-button
                                         >
                                         <a-button
                                             v-else
                                             type="primary"
                                             htmlType="submit"
-                                            :loading="updateLoading"
+                                            :loading="form.processing"
                                             @click="updateForm"
                                             >Update</a-button
                                         >
